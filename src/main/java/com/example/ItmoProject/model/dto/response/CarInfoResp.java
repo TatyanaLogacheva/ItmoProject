@@ -15,5 +15,6 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 public class CarInfoResp extends CarInfoReq {
     private Long id;
+    private UserInfoResponse user;
 
 }

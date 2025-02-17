@@ -4,6 +4,8 @@ import com.example.ItmoProject.model.dto.request.UserInfoRequest;
 import com.example.ItmoProject.model.dto.response.UserInfoResponse;
 import com.example.ItmoProject.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -41,10 +43,13 @@ public class UserController {
 
     }
 
-    @GetMapping
-    public UserInfoResponse getUserWithParams(@RequestParam (required = false) String email, @RequestParam String lastName){
-        return userService.getUser(email, lastName);
-
+    @GetMapping("/pages")
+    public Page<UserInfoResponse> getAllUsersOnPages(@RequestParam(defaultValue = "1") Integer page,
+                                                     @RequestParam(defaultValue = "10") Integer perPage,
+                                                     @RequestParam(defaultValue = "lastName") String sort,
+                                                     @RequestParam(defaultValue = "ASC") Sort.Direction order,
+                                                     @RequestParam(required = false) String filter) {
+        return userService.getAllUsersOnPages(page, perPage, sort, order, filter);
     }
 }
 

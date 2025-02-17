@@ -4,6 +4,8 @@ import com.example.ItmoProject.model.dto.request.CarInfoReq;
 import com.example.ItmoProject.model.dto.response.CarInfoResp;
 import com.example.ItmoProject.service.CarService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -13,6 +15,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class CarController {
     private final CarService carService;
+
 
     @GetMapping("/{id}")
     public CarInfoResp getCar(@PathVariable Long id){
@@ -39,9 +42,22 @@ public class CarController {
         return carService.getAllCars();
     }
 
-    @GetMapping
-    public CarInfoResp getCarWithParams (@RequestParam String brand, @RequestParam (required = false) Integer year){
-        return carService.getCar(brand, year);
+    @PostMapping("/linkUserAndDriver/{carId}/{userId}")
+    public CarInfoResp linkUserAndDriver(@PathVariable Long carId, @PathVariable Long userId){
+        return carService.linkCarAndDriver(carId, userId);
+    }
+
+    @GetMapping("/linkUserCars/{userId}")
+    public List <CarInfoResp> linkUserCars(@PathVariable Long userId) {
+        return carService.getUserCars(userId);
+    }
+    @GetMapping("/pages")
+    Page<CarInfoResp> getAllCarsOnPages(@RequestParam(defaultValue = "1") Integer page,
+                                        @RequestParam(defaultValue = "10") Integer perPage,
+                                        @RequestParam(defaultValue = "brand") String sort,
+                                        @RequestParam(defaultValue = "ASC") Sort.Direction order,
+                                        @RequestParam(required = false) String filter){
+        return carService.getAllCarsOnPages(page, perPage, sort, order, filter);
     }
 
 }
