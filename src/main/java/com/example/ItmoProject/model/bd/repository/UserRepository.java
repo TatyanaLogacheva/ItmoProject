@@ -9,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -16,4 +17,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("select u from User u where u.lastName like %:filter% or u.firstName like %:filter%")
     Page<User> findAllFiltered (Pageable pageRequest, @Param("filter") String filter);
 
+    Optional<User> findByEmail(String email);
 }

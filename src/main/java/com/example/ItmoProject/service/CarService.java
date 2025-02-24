@@ -1,5 +1,7 @@
 package com.example.ItmoProject.service;
 
+import com.example.ItmoProject.exeption.CommonBackendException;
+import com.example.ItmoProject.exeption.ErrorMessage;
 import com.example.ItmoProject.model.bd.entity.Car;
 import com.example.ItmoProject.model.bd.entity.User;
 import com.example.ItmoProject.model.bd.repository.CarRepository;
@@ -15,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -31,6 +34,10 @@ public class CarService {
     private final UserService userService;
 
     public CarInfoResp addCar(CarInfoReq req) {
+        carRepository.findCarByBrandAndAndModelAndPrice(req.getBrand(), req.getModel(), req.getPrice())
+                .ifPresent(car -> {
+                    throw new CommonBackendException("Car is already existed", HttpStatus.CONFLICT);
+                });
         Car car = mapper.convertValue(req, Car.class);
         car.setStatus(CarStatus.CREATED);
         Car save = carRepository.save(car);
@@ -42,15 +49,13 @@ public class CarService {
     }
     public Car getCarFromDB(Long id){
         Optional<Car> optionalCar = carRepository.findById(id);
-        return optionalCar.orElse(new Car());
+        final String errorMsg = String.format("Car with id %s not found",id);
+        return optionalCar.orElseThrow(() -> new CommonBackendException(errorMsg, HttpStatus.NOT_FOUND));
     }
 
     public CarInfoResp updateCar(Long id, CarInfoReq req) {
         Car carFromDB = getCarFromDB(id);
-        if (carFromDB.getId() == null){
-            log.error("Car with id {} not found", id);
-            return mapper.convertValue(carFromDB, CarInfoResp.class);
-        }
+
         Car carReq = mapper.convertValue(req, Car.class);
         carFromDB.setBrand(carReq.getBrand()==null ? carFromDB.getBrand() : carReq.getBrand());
         carFromDB.setModel(carReq.getModel()==null ? carFromDB.getModel() : carReq.getModel());
@@ -66,9 +71,6 @@ public class CarService {
 
     public void deleteCar(Long id) {
         Car carFromDB = getCarFromDB(id);
-        if (carFromDB.getId()==null){
-            log.error("Car with id {} not found", id);
-        }
         carFromDB.setStatus(CarStatus.DELETED);
         carRepository.save(carFromDB);
     }
@@ -83,9 +85,6 @@ public class CarService {
         Car carFromDB = getCarFromDB(carId);
         User userFromDB = userService.getUserFromDB(userId);
         {
-            if (carFromDB.getId() == null || userFromDB.getId() == null){
-                return CarInfoResp.builder().build();
-            }
 
             List<Car> cars = userFromDB.getCars();
             Car existingcar = cars.stream().filter(car -> car.getId().equals(carId)).findFirst().orElse(null);
@@ -110,10 +109,6 @@ public class CarService {
 
     public List <CarInfoResp> getUserCars (Long userId) {
         User user = userService.getUserFromDB(userId);
-        if (user.getId() == null){
-            log.error("Пользователя с id {} не существует", userId);
-            return List.of();
-        }
 
         List<Car> userCars = user.getCars();
         return userCars.stream()

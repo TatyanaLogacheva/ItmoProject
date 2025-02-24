@@ -8,9 +8,13 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface CarRepository extends JpaRepository <Car, Long> {
 
     @Query("select с from Car с where с.brand like %:filter% or с.model like %:filter% ")
     Page<Car> findAllFiltered(Pageable pageRequest, @Param("filter") String filter);
+
+    Optional<Car>findCarByBrandAndAndModelAndPrice(String brand, String model, Long price );
 }
